@@ -27,6 +27,7 @@ func ListenAndUpgradeTLS(addr string, certFile string, keyFile string, handler h
 	if err != nil {
 		return err
 	}
+	defer netListener.Close()
 
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
@@ -64,15 +65,11 @@ func (l *dualListener) Accept() (net.Conn, error) {
 	}
 
 	reader := bufio.NewReader(conn)
-	firstByte, err := reader.Peek(1)
-	if err != nil {
-		return nil, err
-	}
-
 	wrapper := &wrappedConnection{reader, conn}
 
-	// the first byte of a TLS handshake is 0x16
-	if firstByte[0] == 0x16 {
+	firstByte, err := reader.Peek(1)
+	if err == nil && firstByte[0] == 0x16 {
+		// the first byte of a TLS handshake is 0x16
 		return tls.Server(wrapper, l.TLSConfig), nil
 	}
 
