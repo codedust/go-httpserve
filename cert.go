@@ -27,6 +27,7 @@ func CreateCertificateIfNotExist(certFile string, keyFile string, commonName str
 	}
 
 	fmt.Println("Generating RSA key and certificate.")
+	pseudoRandom.Seed(time.Now().UTC().UnixNano())
 
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
@@ -37,7 +38,7 @@ func CreateCertificateIfNotExist(certFile string, keyFile string, commonName str
 	notAfter := time.Now().AddDate(10, 0, 0) // the certificate should expire in 10 years
 
 	template := x509.Certificate{
-		SerialNumber: new(big.Int).SetInt64(pseudoRandom.Int63()),
+		SerialNumber: big.NewInt(pseudoRandom.Int63()),
 		Subject: pkix.Name{
 			CommonName: commonName,
 		},
