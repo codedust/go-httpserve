@@ -20,6 +20,13 @@ func main() {
 		panic("could not generate salt")
 	}
 
-	handleAuth := httpserve.BasicAuthHandler(http.DefaultServeMux, "user", httpserve.Sha512Sum("pass"+salt), salt)
+	authOptions := httpserve.NewAuthOptions("user", httpserve.Sha512Sum("pass"+salt), salt)
+	handleAuth := httpserve.BasicAuthHandler(http.DefaultServeMux, authOptions)
+
+	httpserve.ChangeAuthOptionsUser(authOptions, "user2")
+
+	fmt.Println("URL: http://localhost:8080")
+	fmt.Println("Username: user2")
+	fmt.Println("Password: pass")
 	http.ListenAndServe(":8080", handleAuth)
 }
